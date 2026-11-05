@@ -86,5 +86,6 @@ go test ./...
 - `internal/validator` — проверка данных
 - `internal/database` — подключение к PostgreSQL
 - `internal/handler` — обработчики HTTP-запросов
+- `internal/error` — обработчики ошибок
 - `init.sql` — создание таблицы в базе данных
 - `Dockerfile`, `compose.yaml` — запуск через Docker
