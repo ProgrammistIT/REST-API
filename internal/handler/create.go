@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"threat-api/internal/error"
 	"threat-api/internal/model"
 	"threat-api/internal/validator"
 
@@ -20,7 +21,7 @@ func CreateThreat(db *sql.DB) http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&threat)
 		if err != nil {
-			WriteError(w, http.StatusBadRequest,
+			error.WriteError(w, http.StatusBadRequest,
 				"Invalid JSON", "Failed to decode request body")
 			return
 		}
@@ -30,7 +31,7 @@ func CreateThreat(db *sql.DB) http.HandlerFunc {
 		}
 
 		if !validator.ValidateThreat(threat) {
-			WriteError(w, http.StatusBadRequest,
+			error.WriteError(w, http.StatusBadRequest,
 				"Invalid threat data",
 				"MD5, name or severity is invalid")
 			return
@@ -54,14 +55,14 @@ func CreateThreat(db *sql.DB) http.HandlerFunc {
 			var pgErr *pgconn.PgError
 
 			if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-				WriteError(w, http.StatusConflict,
+				error.WriteError(w, http.StatusConflict,
 					"Threat already exists",
 					"A threat with this MD5 already exists")
 				return
 			}
 
 			fmt.Println("Database error:", err)
-			WriteError(w, http.StatusInternalServerError,
+			error.WriteError(w, http.StatusInternalServerError,
 				"Database error", "Failed to create threat")
 			return
 		}

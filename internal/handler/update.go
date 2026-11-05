@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"threat-api/internal/error"
 	"threat-api/internal/model"
 	"threat-api/internal/validator"
 )
@@ -15,7 +16,7 @@ func UpdateThreat(db *sql.DB) http.HandlerFunc {
 		md5 := r.PathValue("md5")
 
 		if len(md5) != 32 || !validator.CharValidate(md5) {
-			WriteError(w, http.StatusBadRequest,
+			error.WriteError(w, http.StatusBadRequest,
 				"Invalid MD5",
 				"MD5 must contain exactly 32 hexadecimal characters")
 			return
@@ -28,7 +29,7 @@ func UpdateThreat(db *sql.DB) http.HandlerFunc {
 		}
 
 		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-			WriteError(w, http.StatusBadRequest,
+			error.WriteError(w, http.StatusBadRequest,
 				"Invalid JSON", "Failed to decode request body")
 			return
 		}
@@ -50,7 +51,7 @@ func UpdateThreat(db *sql.DB) http.HandlerFunc {
 		)
 
 		if err == sql.ErrNoRows {
-			WriteError(w, http.StatusNotFound,
+			error.WriteError(w, http.StatusNotFound,
 				"Threat not found",
 				"No threat with the specified MD5 was found")
 			return
@@ -58,7 +59,7 @@ func UpdateThreat(db *sql.DB) http.HandlerFunc {
 
 		if err != nil {
 			fmt.Println("Database error:", err)
-			WriteError(w, http.StatusInternalServerError,
+			error.WriteError(w, http.StatusInternalServerError,
 				"Database error", "Failed to retrieve threat")
 			return
 		}
@@ -75,7 +76,7 @@ func UpdateThreat(db *sql.DB) http.HandlerFunc {
 		}
 
 		if !validator.ValidateThreat(threat) {
-			WriteError(w, http.StatusBadRequest,
+			error.WriteError(w, http.StatusBadRequest,
 				"Invalid threat data",
 				"Name or severity is invalid")
 			return
@@ -96,20 +97,20 @@ func UpdateThreat(db *sql.DB) http.HandlerFunc {
 
 		if err != nil {
 			fmt.Println("Database error:", err)
-			WriteError(w, http.StatusInternalServerError,
+			error.WriteError(w, http.StatusInternalServerError,
 				"Database error", "Failed to update threat")
 			return
 		}
 
 		rowsAffected, err := result.RowsAffected()
 		if err != nil {
-			WriteError(w, http.StatusInternalServerError,
+			error.WriteError(w, http.StatusInternalServerError,
 				"Database error", "Failed to check update result")
 			return
 		}
 
 		if rowsAffected == 0 {
-			WriteError(w, http.StatusNotFound,
+			error.WriteError(w, http.StatusNotFound,
 				"Threat not found",
 				"No threat with the specified MD5 was found")
 			return
